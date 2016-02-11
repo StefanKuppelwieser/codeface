@@ -312,6 +312,11 @@ check.corpus.precon <- function(corp.base) {
 
   ## Apply checks of conditions to all documents
   fix.corpus.doc <- function(doc) {
+    # decode headers, authors, and subjects (headings) according to RFC 2045
+    meta(doc, tag="header")  <- decode.headers(meta(doc, tag="header"))
+    meta(doc, tag="author")  <- decode.header(meta(doc, tag="author"))
+    meta(doc, tag="heading") <- decode.header(meta(doc, tag="heading"))
+
     meta(doc, tag="header") <- rmv.multi.refs(doc)
     meta(doc, tag="author") <- fix.author(doc)
     return(doc)

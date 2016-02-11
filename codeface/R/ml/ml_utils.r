@@ -15,6 +15,9 @@
 ## All Rights Reserved.
 
 library(logging)
+library(stringr)
+library(caTools)
+
 ## Source all r files in a given path
 ## NOTE: This is adapted from the example in the source help page
 source.files <- function(path) {
@@ -444,4 +447,67 @@ fix.name <- function(name) {
     }
 
     return (name)
+}
+
+## Given a string, parse it with the given pattern and return a data.frame
+## with the following columns:
+## (1)  match: the matched substring,
+## (2-) one column for each item in named.groups:
+##      a group (something in parentheses) in the pattern.
+parse.string.with.groups = function(line, pattern, named.groups) {
+    parsed.line = str_match_all(line, pattern)
+
+    # transform to data.frame with proper column names
+    parsed.line.df = as.data.frame(parsed.line)
+    colnames(parsed.line.df) = c("match", named.groups)
+
+    return(parsed.line.df)
+}
+
+## Given a string 'header', which is actually an e-mail header or subject,
+## decode the base64-encoded parts of the string
+decode.header <- function(header) {
+
+    # http://www.rfc-archive.org/getrfc.php?rfc=2047
+    # =?<charset>?<encoding>?<data>?=
+    # TODO we do not support [Qq] encodings yet
+    rfc2047header  = '=\\?([^ ?]+)\\?([Bb])\\?([^ ?]+)\\?='
+    rfc2047header_parts = c("charset", "encoding", "data")
+
+    # parse header
+    parsed.header = parse.string.with.groups(header, rfc2047header, rfc2047header_parts)
+
+    # only do anything if the header is actually encoded (we have found some matches/rows)
+    if (nrow(parsed.header) == 0) {
+        return(header)
+    }
+
+    # for each matching
+    for (i in 1:nrow(parsed.header)) {
+        match = parsed.header[i,] # get current row from matchings
+
+        encoding = toupper(match[["encoding"]])
+        if (encoding == "B") {
+            # base64 decode
+            encoded.string = as.character(match[["data"]])
+            data = caTools::base64decode(encoded.string, "character")
+        } else if (encoding == "Q") {
+            # we can do nothing here
+            data = match[["data"]]
+        } else {
+            stop(paste("parse.header is busted: didn't find pattern actually in", header))
+        }
+        header = sub(match[["match"]], data, header, fixed = TRUE)
+    }
+
+    return(header)
+}
+
+## Given a list of strings 'headers', decode the strings using 'decode.header'
+## (this is a convenience wrapper for 'decode.header')
+decode.headers <- function(headers) {
+    new_headers = sapply(headers, decode.header) # decode each header
+    attr(new_headers, "names") <- NULL # remove namings from vector
+
+    return(new_headers)
 }
