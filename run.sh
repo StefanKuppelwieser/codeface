@@ -29,29 +29,37 @@ pushd ${DIR} > /dev/null
 
     pushd $CFDIR
 
-          ## start ID service
-          pushd "id_service"
-                echo "### " $(date "+%F %T") "Starting ID service" 2>&1 > "${LOGS}/id_service.log"
-                nodejs id_service.js ${CFCONF} "info" 2>&1 >> "${LOGS}/id_service.log" &
-                IDSERVICE=$!
-          popd
+        ## start ID service
+        pushd "id_service"
+            echo "### " $(date "+%F %T") "Starting ID service" 2>&1 > "${LOGS}/id_service.log"
+            nodejs id_service.js ${CFCONF} "info" 2>&1 >> "${LOGS}/id_service.log" &
+            IDSERVICE=$!
+        popd
 
-          ## run codeface analysis with current tagging set
-          codeface -j 11 -l "devinfo" run --recreate -c ${CFCONF} -p ${CSCONF} ${RESULTS} ${REPOS} > ${LOGS}/codeface_run.log 2>&1
+        ## run codeface analysis with current tagging set
+        codeface -j 11 -l "devinfo" run --recreate -c ${CFCONF} -p ${CSCONF} ${RESULTS} ${REPOS} > ${LOGS}/codeface_run.log 2>&1
 
-          # run mailing-list analysis (attached to feature/proximity analysis!)
-          #codeface -j 11 -l "devinfo" ml -c ${CFCONF} -p ${CSCONF} "${RESULTS}" "${MAILINGLISTS}" > ${LOGS}/codeface_ml.log 2>&1
-          #codeface -j 11 -l "devinfo" ml --use-corpus -c ${CFCONF} -p ${CSCONF} "${RESULTS}" "${MAILINGLISTS}" > ${LOGS}/codeface_ml.log 2>&1
+        ## run mailing-list analysis (attached to feature/proximity analysis!)
+        # codeface -j 2 -l "devinfo" ml -c ${CFCONF} -p ${CSCONF} "${RESULTS}" "${MAILINGLISTS}" > ${LOGS}/codeface_ml.log 2>&1
+        codeface -j 11 -l "devinfo" ml --use-corpus -c ${CFCONF} -p ${CSCONF} "${RESULTS}" "${MAILINGLISTS}" > ${LOGS}/codeface_ml.log 2>&1
 
-          # run extraction process for this configuration
-          pushd "${EXTRACTION_PATH}" > /dev/null
-                EXTRACTION="${CFEXTRACT}/run-extraction.py"
-                python ${EXTRACTION} -c ${CFCONF} -p ${CSCONF} ${RESULTS} > ${LOGS}/codeface_extraction.log 2>&1
-          popd
+        # run extraction process for this configuration
+        pushd "${CFEXTRACT}" > /dev/null
+            ISSUEPROCESS="${CFEXTRACT}/run-issues.py"
+            python ${ISSUEPROCESS} -c ${CFCONF} -p ${CSCONF} ${RESULTS} > ${LOGS}/codeface_issues.log 2>&1
 
+            EXTRACTION="${CFEXTRACT}/run-extraction.py"
+            python ${EXTRACTION} -c ${CFCONF} -p ${CSCONF} ${RESULTS} > ${LOGS}/codeface_extraction.log 2>&1
 
-          ## stop ID service
-          kill $IDSERVICE
+            MBOXPARSING="${CFEXTRACT}/run-parsing.py"
+            # MboxParsing without filepath
+            python ${MBOXPARSING} -c ${CFCONF} -p ${CSCONF} ${RESULTS} ${MAILINGLISTS} > ${LOGS}/codeface_mbox_parsing.log 2>&1
+            # MboxParsing with filepath
+            python ${MBOXPARSING} -c ${CFCONF} -p ${CSCONF} -f ${RESULTS} ${MAILINGLISTS} > ${LOGS}/codeface_mbox_parsing.log 2>&1
+        popd
+
+        ## stop ID service
+        kill $IDSERVICE
 
     popd
 

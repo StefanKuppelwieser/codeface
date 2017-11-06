@@ -42,7 +42,7 @@ PATH_ROOT = "/scratch/codeface"
 
 # Codeface
 PATH_ANALYSIS = os.path.join(PATH_ROOT, "codeface")
-PATH_ANALYSIS_SCRIPT = "run.sh"
+PATH_ANALYSIS_SCRIPT = "run.sh" # "run_test.sh"
 
 # Codeface extraction
 PATH_CODEFACE_EXTRACTION = os.path.join(PATH_ROOT, "codeface-extraction")
@@ -50,7 +50,8 @@ PATH_CODEFACE_EXTRACTION = os.path.join(PATH_ROOT, "codeface-extraction")
 # benchbuild + uchroot container
 PATH_BENCHBUILD = os.path.join(PATH_ROOT, "benchbuild")
 PATH_CONTAINER = os.path.join(PATH_ROOT, "container")
-PATH_CONTAINER_CODEFACE = os.path.join(PATH_CONTAINER, "2016-11-03_codeface.tar.bz2")
+#PATH_CONTAINER_CODEFACE = os.path.join(PATH_CONTAINER, "2016-11-03_codeface.tar.bz2")
+PATH_CONTAINER_CODEFACE = os.path.join(PATH_CONTAINER, "2017-05-08_codeface.tar.bz2")
 # PATH_CONTAINER_UBUNTU = os.path.join(PATH_BENCHBUILD, "results", "codeface.oNm0L7r9", "container-in")
 
 
@@ -59,11 +60,11 @@ PATH_CONTAINER_CODEFACE = os.path.join(PATH_CONTAINER, "2016-11-03_codeface.tar.
 #
 
 # node
-CH_SLURM_ENV = ["-p", "anywhere", "-A", "anywhere", "--exclusive", "--mem=100000", "--qos=verylong", "--time=0", "--exclude=sphinx"]
+CH_SLURM_ENV = ["-p", "anywhere", "-A", "anywhere", "--exclusive", "--mem=0", "--qos=verylong", "--time=0", "--constraint=zeus,sphinx"]
 #CH_SLURM_ENV = ["-p", "sphinx", "-A", "sphinx", "--exclusive"]
 
 # notification email
-USER = "hunsen"
+USER = "hunsen" # "bockthom" "hunsen"
 CH_MAIL = "{}@fim.uni-passau.de".format(USER)
 
 # job parameters
@@ -85,9 +86,23 @@ CASESTUDIES = [
 #    "busybox",
 #    "openssl",
 #    "sqlite",
-#    "qemu"
-    "linux"
-#    "test"
+#    "firefox",
+#    "test",
+#    "testmail",
+#    "libressl",
+#    "jailhouse",
+#    "apache-http",
+#    "git",
+    "chromium",
+#    "django",
+#    "ffmpeg",
+#    "gcc",
+#    "linux",
+#    "llvm",
+#    "postgres",
+#    "qemu",
+#    "uboot",
+#    "wine",
 ]
 
 TAGGING = [
@@ -175,4 +190,5 @@ for configuration in configurations:
         logging.info("Scheduling {} task".format(CH_SLURM_JOB_NAME))
         logging.info("-- configuration: {}".format(get_configuration_name(configuration, SELECTION_PROCESS)))
         logging.info("-- command: {}".format(cmd))
-        cmd()  # (cmd > CH_SLURM_OUTPUT)()
+        #cmd()  # (cmd > CH_SLURM_OUTPUT)()
+        print(''.join(x for x in cmd() if x.isdigit()))
