@@ -37,8 +37,14 @@ To perform an analysis of project qemu (a machine emulation software)
 and inspect the results in the interactive web frontend, run the
 following steps:
 
-1. After bringing up the vagrant instance, `vagrant ssh` into the
-   virtual machine
+1. After bringing up the vagrant instance, `vagrant ssh` into the virtual machine
+   `sudo apt-get update`
+   `sudo apt-get install npm`
+   `cd /vagrant/id_service`
+   `npm install --no-bin-links`
+   `/vagrant/integration-scripts/test_codeface.sh`
+   `cd /vagrant`
+   `bash shiny-server-pack.sh`
 2. Start the ID service with `/vagrant/id_service/start_id_service.sh&`
 3. Run an analysis of qemu with `/vagrant/analysis_example.sh` (this process
    may take a while to complete)
